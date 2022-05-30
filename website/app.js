@@ -4,7 +4,9 @@ const apiKey = '8c1eb702d7e63bd7f86d1e3805bd70fe'; // Personal API Key for OpenW
 
 // Create a new date instance dynamically with JS
 let d = new Date();
-let newDate = d.getMonth() + '.' + d.getDate() + '.' + d.getFullYear();
+const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+let newDate = d.getDate() + '.' + months[d.getMonth()] + '.' + d.getFullYear();
 
 const userInfo = document.getElementById('userInfo');
 
@@ -21,13 +23,13 @@ function performAction(e) {
     const userFeeling = document.getElementById('feelings').value;
 
     if (zipCode !== '' && userFeeling!='') {
-       
-        fetchWheather(baseUrl, zipCode, apiKey)
+        const url=`${baseUrl}?q=${zipCode}&appid=${apiKey}`
+        fetchWheather(url)
             .then(function(data) {
                 console.log(data)
                 // add data to POST request
                 postData('/projectData', { 
-                    temp: convertKelvinToCelsius(data.main.temp), 
+                    temp: convertKtoC(data.main.temp), 
                     date: newDate,
                     userFeeling: userFeeling,
                     humidity:data.main.humidity,
@@ -40,10 +42,10 @@ function performAction(e) {
                 updateUI()
             }).catch(function(error) {
                 console.log(error);
-                alert('The zip code is invalid. Try again');
+                alert('You have entered an invalid zip Code. Try again');
 
             });
-        userInfo.reset();
+        userInfo.reset(); //this will clears the form everytime
     } else {
        alert("Fill the required Values")
     }
@@ -52,9 +54,9 @@ function performAction(e) {
 }
 
 /* Function to GET Web API Data*/
-const fetchWheather = async(baseUrl, zipCode, apiKey) => {
+const fetchWheather = async(url) => {
     // res equals to the result of fetch function
-    const fetchedData = await fetch(`${baseUrl}?q=${zipCode}&appid=${apiKey}`);
+    const fetchedData = await fetch(url);
     try {
         // data equals to the result of fetch function
         const data = await fetchedData.json();
@@ -98,9 +100,9 @@ const updateUI = async() => {
         console.log(finalData);
         // update new entry values
         if (finalData.date !== undefined && finalData.temp !== undefined || finalData.userFeeling !== undefined && finalData.humidity!==undefined) {
-            document.getElementById('date').innerHTML = finalData.date;
-            document.getElementById('temp').innerHTML = finalData.temp + ' degree C';
-            document.getElementById('content').innerHTML = finalData.userFeeling;
+            document.getElementById('date').innerHTML = "Date:"+finalData.date;
+            document.getElementById('temp').innerHTML = "Temperature:"+finalData.temp + ' degree C';
+            document.getElementById('content').innerHTML ="User Feeling:"+ finalData.userFeeling;
             document.getElementById('humidity').innerHTML="Humidity is"+" "+finalData.humidity;
             document.getElementById('sea_level').innerHTML="Sea level is"+" "+finalData.sea_level;
             document.getElementById('pressure').innerHTML="Pressure is"+" "+finalData.pressure;
@@ -111,10 +113,10 @@ const updateUI = async() => {
 };
 
 // helper function to convert temperature from Kelvin to Celsius
-function convertKelvinToCelsius(kelvin) {
-    if (kelvin < (0)) {
+function convertKtoC(kelvinTemp) {
+    if (kelvinTemp < (0)) {
         return 'below absolute zero (0 K)';
     } else {
-        return (kelvin - 273.15).toFixed(2);
+        return (kelvinTemp - 273.15).toFixed(2);
     }
 }
